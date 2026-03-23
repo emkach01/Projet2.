@@ -1,0 +1,224 @@
+﻿@{
+    ViewData["Meteo"] = "Tableau de bord";
+}
+
+<!-- En-tête du tableau de bord -->
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">
+            <i class="bi bi-speedometer2 me-2"></i>Tableau de bord — APIs publiques
+        </h1>
+        <button id="btnRefresh" class="btn btn-outline-primary" onclick="refreshAllData()">
+            <i class="bi bi-arrow-clockwise me-1"></i> Rafraîchir
+        </button>
+    </div>
+
+    <p class="text-muted mb-4">
+        <i class="bi bi-clock me-1"></i>
+        Dernière mise à jour : <span id="lastUpdated">@DateTime.Now.ToString("dd MMM yyyy, HH:mm:ss")</span>
+    </p>
+
+    <div class="row g-4">
+
+        <!-- ======================================================== -->
+        <!--  SECTION MÉTÉO (OpenWeatherMap)                          -->
+        <!-- ======================================================== -->
+        <div class="col-lg-6" id="weather-section">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-primary text-white d-flex align-items-center">
+                    <i class="bi bi-cloud-sun-fill me-2 fs-4"></i>
+                    <h5 class="mb-0">🌤️ Météo</h5>
+                </div>
+                <div class="card-body" id="weather-body">
+                    @if (ViewBag.WeatherError != null)
+                    {
+                        <!-- Message d'erreur si l'API météo ne fonctionne pas -->
+                        <div class="alert alert-danger d-flex align-items-center" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                            <div>
+                                <strong>Erreur :</strong> @ViewBag.WeatherError
+                            </div>
+                        </div>
+                        <p class="text-muted text-center">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Vérifiez votre clé API ou votre connexion Internet.
+                        </p>
+                    }
+                    else if (ViewBag.Weather != null && ViewBag.Weather.Main != null)
+                    {
+                        <!-- Icône météo -->
+                        @if (ViewBag.Weather.Weather != null && ViewBag.Weather.Weather.Count > 0)
+                        {
+                            <div class="text-center mb-3">
+                                <img src="@( "https://openweathermap.org/img/wn/" + (ViewBag.Weather.Weather[0]?.Icon) + "@2x.png" )"
+                                     alt="@(ViewBag.Weather.Weather[0]?.Description)"
+                                     class="img-fluid" style="width: 100px;" />
+                            </div>
+                        }
+
+                        <!-- Nom de la ville -->
+                        <h3 class="text-center mb-3">
+                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                            @ViewBag.Weather.Name
+                        </h3>
+
+                        <!-- Données météo en grille Bootstrap -->
+                        <div class="row text-center g-3">
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 bg-light rounded h-100">
+                                    <div class="text-muted small">🌡️ Température</div>
+                                    <div class="fw-bold fs-5 text-primary">
+                                        @ViewBag.Weather.Main.Temp °C
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 bg-light rounded h-100">
+                                    <div class="text-muted small">🥵 Ressenti</div>
+                                    <div class="fw-bold fs-5">
+                                        @ViewBag.Weather.Main.Feels_Like °C
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 bg-light rounded h-100">
+                                    <div class="text-muted small">💧 Humidité</div>
+                                    <div class="fw-bold fs-5">
+                                        @ViewBag.Weather.Main.Humidity %
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 bg-light rounded h-100">
+                                    <div class="text-muted small">💨 Vent</div>
+                                    <div class="fw-bold fs-5">
+                                        @ViewBag.Weather.Wind?.Speed m/s
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        @if (ViewBag.Weather.Weather != null && ViewBag.Weather.Weather.Count > 0)
+                        {
+                            <div class="text-center mt-3">
+                                <span class="badge bg-info text-dark fs-6 text-capitalize">
+                                    ☁️ @ViewBag.Weather.Weather[0]?.Description
+                                </span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <!-- Message si aucune donnée -->
+                        <div class="alert alert-warning d-flex align-items-center" role="alert">
+                            <i class="bi bi-exclamation-circle me-2 fs-5"></i>
+                            <div>❌ Impossible de charger la météo</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!--  SECTION FILMS POPULAIRES (TMDB)                         -->
+        <!-- ======================================================== -->
+        <div class="col-lg-6" id="movies-section">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-danger text-white d-flex align-items-center">
+                    <i class="bi bi-film me-2 fs-4"></i>
+                    <h5 class="mb-0">🎬 Films populaires</h5>
+                </div>
+                <div class="card-body" id="movies-body">
+                    @if (ViewBag.MoviesError != null)
+                    {
+                        <!-- Message d'erreur si l'API TMDB ne fonctionne pas -->
+                        <div class="alert alert-danger d-flex align-items-center" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                            <div>
+                                <strong>Erreur :</strong> @ViewBag.MoviesError
+                            </div>
+                        </div>
+                        <p class="text-muted text-center">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Vérifiez votre clé API TMDB ou votre connexion Internet.
+                        </p>
+                    }
+                    else if (ViewBag.Movies?.Results != null)
+                    {
+                        <div class="row row-cols-1 row-cols-md-2 g-3">
+                            @foreach (var movie in ViewBag.Movies.Results)
+                            {
+                                <div class="col">
+                                    <div class="card h-100 border-0 shadow-sm overflow-hidden">
+                                        @if (movie.PosterPath != null)
+                                        {
+                                            <img src="@( "https://image.tmdb.org/t/p/w200" + movie.PosterPath )"
+                                                 class="card-img-top"
+                                                 alt="@(movie.Title)"
+                                                 style="height: 250px; object-fit: cover;" />
+                                        }
+                                        <div class="card-body p-2">
+                                            <h6 class="card-title mb-1 text-truncate" title="@(movie.Title)">
+                                                @movie.Title
+                                            </h6>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-star-fill me-1"></i>@movie.VoteAverage
+                                                </span>
+                                                <small class="text-muted">@movie.ReleaseDate</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Message si aucune donnée -->
+                        <div class="alert alert-warning d-flex align-items-center" role="alert">
+                            <i class="bi bi-exclamation-circle me-2 fs-5"></i>
+                            <div>❌ Impossible de charger les films</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================================================================ -->
+<!--  JavaScript — Rafraîchissement dynamique via fetch()             -->
+<!-- ================================================================ -->
+@section Scripts {
+    <script>
+        async function refreshAllData() {
+            const btn = document.getElementById('btnRefresh');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Chargement…';
+
+            try {
+                const response = await fetch('/Dashboard/Index', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!response.ok) throw new Error(`Erreur HTTP ${response.status}`);
+
+                // Recharger la page pour obtenir les nouvelles données
+                location.reload();
+            } catch (err) {
+                console.error('Erreur lors du rafraîchissement :', err);
+                alert('Impossible de rafraîchir les données : ' + err.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Rafraîchir';
+            }
+        }
+
+        // Rafraîchissement automatique toutes les 5 minutes
+        setInterval(function () {
+            location.reload();
+        }, 5 * 60 * 1000);
+    </script>
+}
