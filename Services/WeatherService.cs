@@ -1,30 +1,44 @@
-﻿using Projet2.Models;
+﻿using System;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Projet2.Models;
 
-public class WeatherService
+namespace Projet2_M.Services
 {
-    private readonly HttpClient _httpClient;
-
-    public WeatherService(HttpClient httpClient)
+    public class WeatherService
     {
-        _httpClient = httpClient;
-    }
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
 
-    public async Task<WeatherResponse> GetWeather(string city)
-    {
-        var apiKey = "0886ba7d95112522977a6172d8b10d24";
-        var url = $"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric";
-
-        try
+        public WeatherService(HttpClient httpClient, IConfiguration configuration)
         {
-            return await _httpClient.GetFromJsonAsync<WeatherResponse>(url)
-                   ?? new WeatherResponse();
+            _httpClient = httpClient;
+            _configuration = configuration;
         }
-        catch
+
+        public async Task<WeatherResponse> GetWeather(string city)
         {
-            return new WeatherResponse();
+            string? apiKey = _configuration["ApiKeys:OpenWeather"];
+
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                throw new Exception("La clé API OpenWeather est introuvable.");
+            }
+
+            string url = $"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric";
+
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception("Erreur lors de l'appel à l'API OpenWeather.");
+            }
+
+            WeatherResponse? weather = await response.Content.ReadFromJsonAsync<WeatherResponse>();
+
+            return weather ?? new WeatherResponse();
         }
     }
 }

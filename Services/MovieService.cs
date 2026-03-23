@@ -1,30 +1,44 @@
-﻿using System.Net.Http.Json;
+﻿using System;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Projet2.Models;
 
-public class MovieService
+namespace Projet2_M.Services
 {
-    private readonly HttpClient _httpClient;
-    private readonly string _apiKey = "8ed2fcb1031415c925b417420bc00f62";
-
-    public MovieService(HttpClient httpClient)
+    public class MovieService
     {
-        _httpClient = httpClient;
-    }
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
 
-    public async Task<MovieResponse> GetPopularMovies()
-    {
-        var apiKey = "8ed2fcb1031415c925b417420bc00f62";
-        var url = $"https://api.themoviedb.org/3/movie/popular?api_key={apiKey}&language=en-US&page=1";
-
-        try
+        public MovieService(HttpClient httpClient, IConfiguration configuration)
         {
-            return await _httpClient.GetFromJsonAsync<MovieResponse>(url)
-                   ?? new MovieResponse();
+            _httpClient = httpClient;
+            _configuration = configuration;
         }
-        catch
+
+        public async Task<MovieResponse> GetPopularMovies()
         {
-            return new MovieResponse();
+            string? apiKey = _configuration["ApiKeys:Tmdb"];
+
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                throw new Exception("La clé API TMDB est introuvable.");
+            }
+
+            string url = $"https://api.themoviedb.org/3/movie/popular?api_key={apiKey}&language=en-US&page=1";
+
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception("Erreur lors de l'appel à l'API TMDB.");
+            }
+
+            MovieResponse? movies = await response.Content.ReadFromJsonAsync<MovieResponse>();
+
+            return movies ?? new MovieResponse();
         }
     }
 }

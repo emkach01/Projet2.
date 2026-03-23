@@ -1,0 +1,76 @@
+﻿@using System.Linq
+@model Projet2.Models.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container py-4">
+    <div class="p-4 p-md-5 mb-4 rounded-4 shadow-sm text-white" style="background: linear-gradient(135deg, #0d6efd, #6610f2);">
+        <h1 class="display-5 fw-bold mb-2">Tableau de bord</h1>
+        <p class="mb-0">Consommation de deux APIs publiques avec ASP.NET Core</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger shadow-sm rounded-3" role="alert">
+            @Model.ErrorMessage
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h3 class="card-title mb-4">🌤️ Météo</h3>
+
+                    @if (Model.Weather != null && Model.Weather.Main != null && !string.IsNullOrEmpty(Model.Weather.Name))
+                    {
+                        <div class="mb-3">
+                            <div class="text-muted">Ville</div>
+                            <div class="fs-4 fw-bold">@Model.Weather.Name</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="text-muted">Température</div>
+                            <div class="fs-4 fw-bold">@Model.Weather.Main.Temp °C</div>
+                        </div>
+
+                        <div>
+                            <div class="text-muted">Humidité</div>
+                            <div class="fs-4 fw-bold">@Model.Weather.Main.Humidity %</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Données météo indisponibles.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h3 class="card-title mb-4">🎬 Films populaires</h3>
+
+                    @if (Model.Movies != null && Model.Movies.Results != null && Model.Movies.Results.Count > 0)
+                    {
+                        <div class="list-group">
+                            @foreach (var movie in Model.Movies.Results.Take(5))
+                            {
+                                <div class="list-group-item border rounded-3 mb-2">
+                                    <div class="fw-semibold">@movie.Title</div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Données de films indisponibles.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

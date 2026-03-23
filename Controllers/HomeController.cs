@@ -1,23 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
-public class HomeController : Controller
+
+namespace Projet2_M.Controllers
 {
-    private readonly WeatherService _weatherService;
-    private readonly MovieService _movieService;
-
-    public HomeController(WeatherService weatherService, MovieService movieService)
+    public class HomeController : Controller
     {
-        _weatherService = weatherService;
-        _movieService = movieService;
-    }
-
-    public async Task<IActionResult> Index()
-    {
-        var weather = await _weatherService.GetWeather("Montreal");
-        var movies = await _movieService.GetPopularMovies();
-
-        ViewBag.Weather = weather;
-        ViewBag.Movies = movies;
-
-        return View();
+        public IActionResult Index()
+        {
+            return RedirectToAction("Index", "Dashboard");
+        }
     }
 }
