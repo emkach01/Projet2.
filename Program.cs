@@ -1,4 +1,6 @@
-var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddMemoryCache(); // ← AJOUTÉ : active le cache en mémoire
 
 builder.Services.AddHttpClient<WeatherService>();
 builder.Services.AddHttpClient<MovieService>();
